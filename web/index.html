@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CalloutSlip</title>
+  <style>
+    :root { color-scheme: light; font-family: Georgia, serif; background: #f4efe6; color: #1c1915; }
+    body { max-width: 820px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-weight: 500; letter-spacing: -0.03em; }
+    form, pre { background: #fffdf8; border: 1px solid #e4d8c4; padding: 1rem; }
+    label { display: block; margin: 0.6rem 0 0.2rem; font-size: 0.9rem; }
+    input, select, button { font: inherit; padding: 0.4rem 0.5rem; width: 100%; box-sizing: border-box; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1rem; }
+    button { margin-top: 1rem; background: #1c1915; color: #fffdf8; border: 0; cursor: pointer; }
+    .note { color: #6b6256; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <h1>CalloutSlip</h1>
+  <p>After-hours call-out quote for locksmiths, plumbers, and other emergency trades. Signature: Mourad.Soltani.</p>
+  <form id="q">
+    <div class="grid">
+      <div><label>Trade</label><select name="trade"><option>locksmith</option><option>plumber</option><option>electrician</option><option>glazier</option><option>hvac</option><option>appliance</option></select></div>
+      <div><label>Window</label><select name="window"><option>standard</option><option>evening</option><option>night</option><option>weekend</option><option selected>holiday</option></select></div>
+      <div><label>Customer</label><input name="customer" value="Harbor Apartments" required /></div>
+      <div><label>Job summary</label><input name="job_summary" value="Night lockout, cylinder change" required /></div>
+      <div><label>Call-out fee</label><input name="callout_fee" type="number" step="0.01" value="85" /></div>
+      <div><label>Miles</label><input name="miles" type="number" step="0.01" value="12" /></div>
+      <div><label>Mileage rate</label><input name="mileage_rate" type="number" step="0.01" value="1.50" /></div>
+      <div><label>Labor hours</label><input name="labor_hours" type="number" step="0.01" value="1.25" /></div>
+      <div><label>Labor rate</label><input name="labor_rate" type="number" step="0.01" value="95" /></div>
+      <div><label>Parts cost</label><input name="parts_cost" type="number" step="0.01" value="40" /></div>
+      <div><label>Parts markup (0.35 = 35%)</label><input name="parts_markup" type="number" step="0.01" value="0.35" /></div>
+      <div><label>Tax rate (0.08 = 8%)</label><input name="tax_rate" type="number" step="0.01" value="0.08" /></div>
+      <div><label>Deposit rate</label><input name="deposit_rate" type="number" step="0.01" value="0.40" /></div>
+      <div><label>Minimum charge</label><input name="minimum_charge" type="number" step="0.01" value="150" /></div>
+    </div>
+    <button type="submit">Build slip</button>
+  </form>
+  <p class="note">Rates stay on this machine. Nothing is stored.</p>
+  <pre id="out">Submit a job to print the client slip.</pre>
+  <script>
+    document.getElementById("q").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target).entries());
+      ["callout_fee","miles","mileage_rate","labor_hours","labor_rate","parts_cost","parts_markup","tax_rate","deposit_rate","minimum_charge"].forEach((key) => data[key] = Number(data[key]));
+      const response = await fetch("/api/quote", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      const body = await response.json();
+      document.getElementById("out").textContent = body.slip || body.error;
+    });
+  </script>
+</body>
+</html>
